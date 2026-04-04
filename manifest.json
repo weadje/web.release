@@ -1,0 +1,23 @@
+{
+  "name": "MixMaster Pro",
+  "short_name": "MixMaster",
+  "description": "Professional mobile DAW & mixer",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#080810",
+  "theme_color": "#080810",
+  "categories": ["music", "utilities"],
+  "icons": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='80' fill='%23080810'/><text x='256' y='320' font-size='260' text-anchor='middle' fill='%2300ffe1'>🎚</text></svg>",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "apple": {
+    "status_bar": "black-translucent",
+    "web_app_capable": true
+  }
+}

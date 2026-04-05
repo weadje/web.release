@@ -6123,6 +6123,7 @@ function pickType(typeId){
 }
 
 function openPlugin(type,id){
+  if ((type === 'filter' || type === 'doubler') && !ensureProFeature(type === 'filter' ? 'Filter FX' : 'Doubler FX')) return;
   const t=tr(id);
   const titles={comp:'COMPRESSOR',delay:'DELAY DETAIL',vocal:'VOCAL PROCESSOR',bass:'BASS ENHANCER'};
   document.getElementById('sheetTitle').textContent = titles[type]||type.toUpperCase();

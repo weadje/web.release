@@ -4735,12 +4735,11 @@ function showUpgradeSheet(featureName = 'MixMaster Pro'){
         </div>
         <div class="paywall-price-row">
           <div>
-            <div class="paywall-eyebrow">Pro Access</div>
+            <div class="paywall-eyebrow">${billingCycle === 'yearly' ? BILLING.yearly.savingsLabel : 'Pro Access'}</div>
             <div class="paywall-price">${offer.price}</div>
           </div>
           <div class="paywall-billing-note">
-            Cancel anytime<br>
-            Instant access to ${featureName}
+            ${billingCycle === 'yearly' ? `${BILLING.yearly.fullPrice} regular<br>${BILLING.yearly.savingsLabel} billed yearly` : `Cancel anytime<br>Instant access to ${featureName}`}
           </div>
         </div>
       </div>
@@ -4854,8 +4853,7 @@ function showProUpgradePrompt({ title, subtitle, eyebrow = 'MixMaster Pro', prim
             <div class="paywall-price">${billingCycle === 'yearly' ? BILLING.yearly.price : BILLING.monthly.price}</div>
           </div>
           <div class="paywall-billing-note">
-            Cancel anytime<br>
-            Instant access after upgrade
+            ${billingCycle === 'yearly' ? `${BILLING.yearly.fullPrice} regular<br>${BILLING.yearly.savingsLabel} billed yearly` : 'Cancel anytime<br>Instant access after upgrade'}
           </div>
         </div>
       </div>

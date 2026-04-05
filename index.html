@@ -1348,6 +1348,11 @@ input[type=range]::-moz-range-track {
   overflow: hidden;
   margin-bottom: 10px;
 }
+.eq-canvas-box canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
 
 /* â”€â”€ SPECTRUM PAGE â”€â”€ */
 .spectrum-page {
@@ -5575,6 +5580,13 @@ function renderLoop(){
 function drawEQCurve(){
   const cv=document.getElementById('eqCanvas');
   if(!cv) return;
+  const box = cv.parentElement;
+  const displayWidth = Math.max(1, Math.round(box?.clientWidth || cv.clientWidth || cv.width));
+  const displayHeight = Math.max(1, Math.round(box?.clientHeight || cv.clientHeight || cv.height));
+  if (cv.width !== displayWidth || cv.height !== displayHeight) {
+    cv.width = displayWidth;
+    cv.height = displayHeight;
+  }
   const W=cv.width, H=cv.height;
   const c=cv.getContext('2d');
   c.clearRect(0,0,W,H);
@@ -5598,6 +5610,9 @@ function drawEQCurve(){
   }
   c.stroke(); c.shadowBlur=0;
 }
+window.addEventListener('resize', () => {
+  drawEQCurve();
+});
 
 function buildVU(){
   ['vuL','vuR'].forEach(id=>{

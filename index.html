@@ -3127,9 +3127,10 @@ const BILLING = {
   },
   yearly: {
     label: 'Yearly',
-    price: '$39.99 / year',
-    monthlyEquivalent: '$3.33/mo',
-    savingsLabel: 'Save 33%',
+    price: '$53.89 / year',
+    fullPrice: '$59.88 / year',
+    monthlyEquivalent: '$4.49/mo',
+    savingsLabel: 'Save 10%',
     paymentUrl: 'https://buy.stripe.com/REPLACE_WITH_YOUR_YEARLY_PAYMENT_LINK'
   },
   providerName: 'Stripe Checkout',
@@ -4647,7 +4648,7 @@ function renderPlanUI(){
       <div class="plan-tier pro">
         <strong>PRO</strong>
         <p>${offer.price} through ${BILLING.providerName}. Unlock unlimited tracks, Scope analyzer, Filter and Doubler FX, final WAV export for DAW use, premium mastering flow, and the full MixMaster studio experience.</p>
-        <p style="margin-top:8px;color:var(--cyan)">${billingCycle === 'yearly' ? `${BILLING.yearly.savingsLabel} and only ${BILLING.yearly.monthlyEquivalent} when billed yearly.` : 'Flexible monthly billing with full Pro access.'}</p>
+        <p style="margin-top:8px;color:var(--cyan)">${billingCycle === 'yearly' ? `${BILLING.yearly.savingsLabel} from ${BILLING.yearly.fullPrice} and only ${BILLING.yearly.monthlyEquivalent} when billed yearly.` : 'Flexible monthly billing at $4.99 / month with full Pro access.'}</p>
         <p style="margin-top:8px;color:var(--gold)">${BILLING.payoutNote}</p>
       </div>
     `;
@@ -4672,12 +4673,12 @@ function renderLegacyUpgradeSheet(featureName = 'MixMaster Pro'){
     <div class="plan-copy">
       <div class="plan-switch">
         <button class="plan-option ${billingCycle === 'monthly' ? 'active' : ''}" type="button" onclick="setBillingCycle('monthly');showUpgradeSheet('${safeFeatureName}')">MONTHLY ${BILLING.monthly.price}</button>
-        <button class="plan-option ${billingCycle === 'yearly' ? 'active' : ''}" type="button" onclick="setBillingCycle('yearly');showUpgradeSheet('${safeFeatureName}')">YEARLY ${BILLING.yearly.savingsLabel}</button>
+        <button class="plan-option ${billingCycle === 'yearly' ? 'active' : ''}" type="button" onclick="setBillingCycle('yearly');showUpgradeSheet('${safeFeatureName}')">YEARLY ${BILLING.yearly.price}</button>
       </div>
       <div class="plan-tier pro">
         <strong>${featureName}</strong>
         <p>${getBillingOffer().price} through ${BILLING.providerName}. Upgrade to Pro to unlock WAV exports, Scope analyzer, Filter, Doubler, unlimited tracks, and a more complete studio workflow for serious mixes.</p>
-        <p style="margin-top:8px;color:var(--cyan)">${billingCycle === 'yearly' ? `${BILLING.yearly.savingsLabel} with the yearly plan.` : 'Switch to yearly any time for the best value.'}</p>
+        <p style="margin-top:8px;color:var(--cyan)">${billingCycle === 'yearly' ? `${BILLING.yearly.savingsLabel} from ${BILLING.yearly.fullPrice} with the yearly plan.` : 'Monthly billing is $4.99 / month. Switch to yearly any time for 10% off.'}</p>
       </div>
       <div class="plan-tier free">
         <strong>WHY USERS UPGRADE</strong>
@@ -4725,12 +4726,12 @@ function showUpgradeSheet(featureName = 'MixMaster Pro'){
       <div class="paywall-pricing">
         <div class="plan-switch">
           <button class="plan-option ${billingCycle === 'monthly' ? 'active' : ''}" type="button" onclick="setBillingCycle('monthly');showUpgradeSheet('${safeFeatureName}')">MONTHLY ${BILLING.monthly.price}</button>
-          <button class="plan-option ${billingCycle === 'yearly' ? 'active' : ''}" type="button" onclick="setBillingCycle('yearly');showUpgradeSheet('${safeFeatureName}')">YEARLY ${BILLING.yearly.savingsLabel}</button>
+          <button class="plan-option ${billingCycle === 'yearly' ? 'active' : ''}" type="button" onclick="setBillingCycle('yearly');showUpgradeSheet('${safeFeatureName}')">YEARLY ${BILLING.yearly.price}</button>
         </div>
         <div class="paywall-price-row">
           <div>
             <div class="paywall-eyebrow">Pro Access</div>
-            <div class="paywall-price">${BILLING.monthly.price}</div>
+            <div class="paywall-price">${offer.price}</div>
           </div>
           <div class="paywall-billing-note">
             Cancel anytime<br>
@@ -4840,12 +4841,12 @@ function showProUpgradePrompt({ title, subtitle, eyebrow = 'MixMaster Pro', prim
       <div class="paywall-pricing">
         <div class="plan-switch">
           <button class="plan-option ${billingCycle === 'monthly' ? 'active' : ''}" type="button" onclick="setBillingCycle('monthly');refreshUpgradePrompt()">MONTHLY ${BILLING.monthly.price}</button>
-          <button class="plan-option ${billingCycle === 'yearly' ? 'active' : ''}" type="button" onclick="setBillingCycle('yearly');refreshUpgradePrompt()">YEARLY $29.99 / year</button>
+          <button class="plan-option ${billingCycle === 'yearly' ? 'active' : ''}" type="button" onclick="setBillingCycle('yearly');refreshUpgradePrompt()">YEARLY ${BILLING.yearly.price}</button>
         </div>
         <div class="paywall-price-row">
           <div>
-            <div class="paywall-eyebrow">Best Value</div>
-            <div class="paywall-price">${billingCycle === 'yearly' ? '$29.99 / year' : BILLING.monthly.price}</div>
+            <div class="paywall-eyebrow">${billingCycle === 'yearly' ? BILLING.yearly.savingsLabel : 'Pro Access'}</div>
+            <div class="paywall-price">${billingCycle === 'yearly' ? BILLING.yearly.price : BILLING.monthly.price}</div>
           </div>
           <div class="paywall-billing-note">
             Cancel anytime<br>

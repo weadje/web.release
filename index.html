@@ -422,6 +422,16 @@ html[data-theme="light"] .track-card.expanded,
 html[data-theme="light"] .paywall-pricing {
   box-shadow: 0 0 0 1px rgba(14,102,120,0.1) inset, 0 8px 18px rgba(14,102,120,0.05);
 }
+html[data-theme="light"] .subscription-legal-link {
+  background: rgba(14,102,120,0.08);
+  border-color: rgba(14,102,120,0.18);
+  color: #1b5260;
+}
+html[data-theme="light"] .subscription-legal-link:hover,
+html[data-theme="light"] .subscription-legal-link:focus-visible {
+  background: rgba(14,102,120,0.14);
+  color: #113741;
+}
 
 html[data-theme="light"] .plan-cta-btn,
 html[data-theme="light"] .paywall-primary-btn,
@@ -1884,6 +1894,43 @@ input[type=range]::-moz-range-track {
   line-height: 1.55;
   color: var(--muted);
 }
+.subscription-legal {
+  margin-top: 14px;
+  display: grid;
+  gap: 10px;
+  font-size: 12px;
+  line-height: 1.7;
+  color: var(--muted);
+}
+.subscription-legal-title {
+  color: var(--text);
+  font-weight: 700;
+}
+.subscription-legal-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.subscription-legal-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 42px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  border: 1px solid color-mix(in srgb, var(--cyan) 28%, var(--border));
+  background: rgba(0,255,225,0.06);
+  color: var(--cyan);
+  text-decoration: none;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+}
+.subscription-legal-link:hover,
+.subscription-legal-link:focus-visible {
+  border-color: var(--cyan);
+  background: rgba(0,255,225,0.12);
+  color: #eafffb;
+}
 .preset-note {
   font-size: 0.66rem;
   line-height: 1.55;
@@ -3155,6 +3202,21 @@ const BILLING = {
   successFlag: 'mixmaster_pro=1',
   payoutNote: 'Customer payments are collected through Stripe, then Stripe pays out to your connected business bank account.'
 };
+const PRIVACY_POLICY_URL = 'https://weadje.github.io/web.release/privacy-policy.html';
+const TERMS_OF_USE_URL = 'https://www.apple.com/legal/internet-services/itunes/dev/stdeula/';
+function renderSubscriptionLegalCopy(){
+  return `
+    <div class="subscription-legal">
+      <div class="subscription-legal-title">Mix-Master Pro Subscription</div>
+      <div>Monthly subscription: 1 month of Mix-Master Pro access for ${BILLING.monthly.price}. Includes WAV export, premium presets, unlimited tracks, and Pro studio tools during the subscription period.</div>
+      <div>Yearly subscription: 1 year of Mix-Master Pro access for ${BILLING.yearly.price}. Includes the same full Pro features during the subscription period.</div>
+      <div class="subscription-legal-links">
+        <a class="subscription-legal-link" href="${TERMS_OF_USE_URL}" target="_blank" rel="noopener">Terms of Use</a>
+        <a class="subscription-legal-link" href="${PRIVACY_POLICY_URL}" target="_blank" rel="noopener">Privacy Policy</a>
+      </div>
+    </div>
+  `;
+}
 
 function initCtx() {
   if (ctx) { return ctx.state === 'suspended' ? ctx.resume() : Promise.resolve(); }
@@ -4793,6 +4855,7 @@ function showUpgradeSheet(featureName = 'MixMaster Pro'){
       <div class="paywall-footnote">
         ${BILLING.providerName} handles secure checkout. ${BILLING.payoutNote}
       </div>
+      ${renderSubscriptionLegalCopy()}
 
       <template id="legacy-upgrade-sheet-backup">
         ${renderLegacyUpgradeSheet(featureName)}
@@ -4878,6 +4941,7 @@ function showProUpgradePrompt({ title, subtitle, eyebrow = 'MixMaster Pro', prim
         <span>Instant access after upgrade</span>
       </div>
       <div class="paywall-footnote">${footnote || subtitle}</div>
+      ${renderSubscriptionLegalCopy()}
     </div>
   `;
   document.getElementById('sheetOverlay').classList.add('open');
@@ -5428,7 +5492,37 @@ function deleteTrack(id){
   saveProjectState();
   updateTransportDisplay();
 }
-function triggerFile(id){ document.getElementById(`fi-${id}`).click(); }
+function triggerFile(id){
+  if (window.mixmasterNative?.platform === 'ios' && typeof window.mixmasterNativePickAudioFile === 'function') {
+    window.mixmasterNativePickAudioFile(id);
+    return;
+  }
+  document.getElementById(`fi-${id}`).click();
+}
+
+function isSupportedAudioFile(file) {
+  if (!file) return false;
+  const fileName = String(file.name || '').toLowerCase();
+  const mimeType = String(file.type || '').toLowerCase();
+  if (mimeType.startsWith('audio/')) return true;
+  return ['.mp3','.wav','.aiff','.aif','.flac','.ogg','.m4a','.aac','.wma','.opus'].some(ext => fileName.endsWith(ext));
+}
+
+function base64ToArrayBuffer(base64) {
+  const binary = atob(base64);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i += 1) bytes[i] = binary.charCodeAt(i);
+  return bytes.buffer;
+}
+
+window.mixmasterNativeReceiveAudioFile = function(payload) {
+  const id = Number(payload?.trackId);
+  if (!Number.isFinite(id) || !payload?.base64Data) return;
+  const file = { name: payload.fileName || 'audio-file' };
+  Promise.resolve(initCtx()).then(() => {
+    decodeAndLoad(id, file, base64ToArrayBuffer(payload.base64Data));
+  });
+};
 
 function decodeAndLoad(id, file, arrayBuf) {
   const t = tr(id);
@@ -5454,6 +5548,10 @@ function decodeAndLoad(id, file, arrayBuf) {
 
 function loadFileFromDrop(id, file) {
   if (!file) return;
+  if (!isSupportedAudioFile(file)) {
+    alert('Audio files only. Please choose MP3, WAV, M4A, AAC, FLAC, OGG, or OPUS.');
+    return;
+  }
   initCtx();
   const r = new FileReader();
   r.onload = e => decodeAndLoad(id, file, e.target.result);
@@ -5462,8 +5560,13 @@ function loadFileFromDrop(id, file) {
 
 function loadFile(id, input) {
   if (!input.files[0]) return;
-  initCtx();
   const file = input.files[0];
+  if (!isSupportedAudioFile(file)) {
+    input.value = '';
+    alert('Audio files only. Video uploads are not supported in Mix-Master Pro.');
+    return;
+  }
+  initCtx();
   const r = new FileReader();
   r.onload = e => decodeAndLoad(id, file, e.target.result);
   r.readAsArrayBuffer(file);

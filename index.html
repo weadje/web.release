@@ -4633,8 +4633,32 @@ function isBillingConfigured(){
   const offer = getBillingOffer();
   return offer.paymentUrl && !offer.paymentUrl.includes('REPLACE_WITH_YOUR_');
 }
+function isNativeIosBillingEnvironment(){
+  return Boolean(
+    window.ReactNativeWebView ||
+    window.mixmasterNative?.platform === 'ios'
+  );
+}
 function hasNativePurchaseBridge(){
-  return typeof window.mixmasterNativeRequestProCheckout === 'function';
+  return isNativeIosBillingEnvironment() && (
+    typeof window.mixmasterNativeRequestProCheckout === 'function' ||
+    typeof window.ReactNativeWebView?.postMessage === 'function'
+  );
+}
+function requestNativeProCheckout(payload){
+  if (typeof window.mixmasterNativeRequestProCheckout === 'function') {
+    window.mixmasterNativeRequestProCheckout(payload);
+    return true;
+  }
+  if (typeof window.ReactNativeWebView?.postMessage === 'function') {
+    window.ReactNativeWebView.postMessage(JSON.stringify({
+      type: 'mixmaster_purchase_pro',
+      payload: payload || {}
+    }));
+    return true;
+  }
+  return false;
+}
 }
 function resumePendingProAction(){
   if (pendingProAction?.type === 'wav-export') {
@@ -4690,14 +4714,18 @@ function startProCheckout(){
     return;
   }
   if (hasNativePurchaseBridge()) {
-    window.mixmasterNativeRequestProCheckout({
+    requestNativeProCheckout({
       billingCycle,
       pendingAction: pendingProAction
     });
     return;
   }
+  if (isNativeIosBillingEnvironment()) {
+    alert('Apple subscriptions are not ready in this build yet. Please update the app and try again.');
+    return;
+  }
   if (!isBillingConfigured()) {
-    alert(`Add your real Stripe Payment Link in BILLING.${billingCycle}.paymentUrl to start selling ${BILLING.proName}. Set the Stripe success URL to: ${getCheckoutReturnUrl()}`);
+    alert(`Web billing is not configured yet for ${BILLING.proName}. Complete checkout from the iPhone/iPad app or add a real web payment link for browser sales. Success URL: ${getCheckoutReturnUrl()}`);
     return;
   }
   window.open(offer.paymentUrl, '_blank', 'noopener');
